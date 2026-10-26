@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozy Lofi Pixel Sanctuary - Ultimate Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #07030d;
+            font-family: 'VT323', monospace;
+            color: #f3e8ff;
+        }
+
+        .pixelated {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1333;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a855f7;
+            border-radius: 2px;
+        }
+
+        .pixel-card {
+            background: #170d29;
+            border: 3px solid #8b5cf6;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.35), inset 0 0 12px rgba(0,0,0,0.6);
+        }
+
+        .pixel-btn {
+            background: #2d164d;
+            border: 2px solid #a855f7;
+            box-shadow: 2px 2px 0px #0e051b;
+            transition: all 0.1s ease;
+        }
+        .pixel-btn:hover {
+            background: #432070;
+            border-color: #f472b6;
+        }
+        .pixel-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #0e051b;
+        }
+
+        .pixel-btn-active {
+            background: #9333ea !important;
+            border-color: #f472b6 !important;
+            color: #ffffff !important;
+        }
+
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen relative overflow-hidden bg-slate-950">
+
+    <!-- Game/Canvas Container -->
+    <div id="game-container" class="relative w-full max-w-[1280px] aspect-[16/9] max-h-[100vh] flex items-center justify-center shadow-2xl overflow-hidden bg-[#0a0414]">
+        <canvas id="roomCanvas" class="w-full h-full pixelated"></canvas>
+
+        <!-- Hover Tooltip -->
+        <div id="hover-tooltip" class="absolute pointer-events-none opacity-0 transition-opacity duration-150 bg-slate-900/95 text-pink-300 text-lg px-3 py-1 border-2 border-pink-500 rounded font-mono z-20 shadow-lg">
+            Object
+        </div>
+
+        <!-- Book & Personal Notes Modal -->
+        <div id="book-modal" class="absolute inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 z-40">
+            <div class="w-[90%] max-w-md pixel-card rounded-lg p-6 text-purple-200 flex flex-col text-center space-y-4 relative">
+                <button id="close-book-btn" class="absolute top-3 right-3 px-3 py-0.5 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded border border-pink-300 z-10">✕</button>
+
+                <div class="flex justify-between items-center border-b-2 border-purple-500/40 pb-2 pr-10">
+                    <div class="flex space-x-2">
+                        <button id="book-tab-quotes" onclick="switchBookTab('quotes')" class="text-xl font-bold tracking-wider text-pink-300 border-b-2 border-pink-400 pb-0.5">📖 Lofi Wisdom</button>
+                        <span class="text-purple-600">|</span>
+                        <button id="book-tab-notes" onclick="switchBookTab('notes')" class="text-xl font-bold tracking-wider text-purple-400 hover:text-pink-300 pb-0.5">📝 Personal Notes</button>
+                    </div>
+                </div>
+
+                <div id="book-view-quotes" class="flex flex-col items-center space-y-4">
+                    <p id="book-quote" class="text-xl italic text-purple-100 font-mono py-4">"Rest is not a luxury, it is an essential part of creativity."</p>
+                    <button onclick="readRandomQuote()" class="pixel-btn py-2 px-4 rounded text-pink-200 text-lg font-bold self-center">Another Note 📜</button>
+                </div>
+
+                <div id="book-view-notes" class="hidden flex flex-col space-y-3 text-left">
+                    <div class="flex gap-2">
+                        <input type="text" id="personal-note-input" placeholder="Write a note..." class="flex-1 bg-[#120722] border border-purple-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-pink-500 font-mono text-base">
+                        <button onclick="addPersonalNote()" class="pixel-btn px-3 py-1.5 rounded font-bold text-pink-200 text-sm">Save</button>
+                    </div>
+                    <ul id="personal-notes-list" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Computer Workstation Modal -->
+        <div id="pc-modal" class="absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 z-30">
+            <div class="w-[94%] max-w-3xl pixel-card rounded-lg p-4 text-purple-200 flex flex-col h-[88%] max-h-[560px]">
+                <div class="flex justify-between items-center border-b-2 border-purple-500/40 pb-2 mb-3">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-desktop text-pink-400 text-xl"></i>
+                        <span class="text-2xl font-bold tracking-wider text-pink-300">LOFI COMPUTER WORKSTATION</span>
+                    </div>
+                    <button id="close-pc-btn" class="px-3 py-0.5 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded border border-pink-300">✕</button>
+                </div>
+
+                <div class="flex space-x-2 mb-3 border-b border-purple-800 pb-2 overflow-x-auto">
+                    <button id="tab-music" onclick="switchTab('music')" class="px-3 py-1 bg-purple-700 text-white rounded text-lg font-mono flex items-center gap-2 border border-purple-400 whitespace-nowrap"><i class="fa-solid fa-sliders"></i> Audio Synth</button>
+                    <button id="tab-todo" onclick="switchTab('todo')" class="px-3 py-1 bg-purple-900/50 hover:bg-purple-800 text-purple-300 rounded text-lg font-mono flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-list-check"></i> Focus Tasks</button>
+                    <button id="tab-timer" onclick="switchTab('timer')" class="px-3 py-1 bg-purple-900/50 hover:bg-purple-800 text-purple-300 rounded text-lg font-mono flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-stopwatch"></i> Pomodoro Timer</button>
+                    <button id="tab-draw" onclick="switchTab('draw')" class="px-3 py-1 bg-purple-900/50 hover:bg-purple-800 text-purple-300 rounded text-lg font-mono flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-paintbrush"></i> Pixel Art Pad</button>
+                    <button id="tab-vis" onclick="switchTab('vis')" class="px-3 py-1 bg-purple-900/50 hover:bg-purple-800 text-purple-300 rounded text-lg font-mono flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-cloud-rain"></i> Weather Mood</button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-1 space-y-3">
+                    <div id="tab-content-music" class="space-y-3">
+                        <div class="bg-[#120722] p-3 rounded-lg border border-purple-900/80">
+                            <h3 class="text-lg text-pink-300 font-bold mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-compact-disc text-pink-400"></i> Cozy Ambient Synthesizers
+                            </h3>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button id="btn-sound-chords" onclick="toggleAudioTrack('chords')" class="pixel-btn p-2 rounded text-left flex items-center justify-between text-sm">
+                                    <span><i class="fa-solid fa-music mr-2 text-pink-400"></i> Lofi Piano Chords</span>
+                                    <span id="st-chords" class="text-xs text-purple-400">OFF</span>
+                                </button>
+                                <button id="btn-sound-rain" onclick="toggleAudioTrack('rain')" class="pixel-btn p-2 rounded text-left flex items-center justify-between text-sm">
+                                    <span><i class="fa-solid fa-cloud-rain mr-2 text-indigo-400"></i> Window Rain</span>
+                                    <span id="st-rain" class="text-xs text-purple-400">OFF</span>
+                                </button>
+                                <button id="btn-sound-fire" onclick="toggleAudioTrack('fire')" class="pixel-btn p-2 rounded text-left flex items-center justify-between text-sm">
+                                    <span><i class="fa-solid fa-fire mr-2 text-amber-500"></i> Fireplace Crackle</span>
+                                    <span id="st-fire" class="text-xs text-purple-400">OFF</span>
+                                </button>
+                                <button id="btn-sound-typing" onclick="toggleAudioTrack('typing')" class="pixel-btn p-2 rounded text-left flex items-center justify-between text-sm">
+                                    <span><i class="fa-solid fa-keyboard mr-2 text-emerald-400"></i> ASMR Keyboard</span>
+                                    <span id="st-typing" class="text-xs text-purple-400">OFF</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#120722] p-3 rounded-lg border border-purple-900/80 space-y-2">
+                            <div class="flex justify-between items-center text-sm">
+                                <span>Master Volume</span>
+                                <input id="volume-master" type="range" min="0" max="1" step="0.01" value="0.6" class="accent-pink-500 cursor-pointer w-1/2">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-content-todo" class="hidden space-y-3">
+                        <div class="flex gap-2">
+                            <input type="text" id="todo-input" placeholder="Type a cozy goal or task..." class="flex-1 bg-[#120722] border border-purple-700 rounded px-3 py-1.5 text-white focus:outline-none focus:border-pink-500 font-mono text-lg">
+                            <button onclick="addTodo()" class="pixel-btn px-4 py-1.5 rounded font-bold text-pink-200">Add Task</button>
+                        </div>
+                        <ul id="todo-list" class="space-y-2 max-h-[220px] overflow-y-auto"></ul>
+                    </div>
+
+                    <div id="tab-content-timer" class="hidden text-center py-4 space-y-4">
+                        <div id="timer-display" class="text-6xl font-mono text-pink-400 font-bold tracking-widest my-2">25:00</div>
+                        <div class="flex justify-center gap-3">
+                            <button id="start-timer-btn" onclick="toggleTimer()" class="pixel-btn px-6 py-2 bg-emerald-700 font-bold rounded text-xl text-emerald-100">Start Focus</button>
+                            <button onclick="resetTimer()" class="pixel-btn px-6 py-2 font-bold rounded text-xl text-purple-200">Reset</button>
+                        </div>
+                    </div>
+
+                    <div id="tab-content-draw" class="hidden flex flex-col items-center space-y-2">
+                        <div class="flex gap-2 mb-1">
+                            <button onclick="setDrawColor('#ec4899')" class="w-6 h-6 bg-pink-500 rounded border border-white"></button>
+                            <button onclick="setDrawColor('#a855f7')" class="w-6 h-6 bg-purple-500 rounded border border-white"></button>
+                            <button onclick="setDrawColor('#38bdf8')" class="w-6 h-6 bg-sky-400 rounded border border-white"></button>
+                            <button onclick="setDrawColor('#34d399')" class="w-6 h-6 bg-emerald-400 rounded border border-white"></button>
+                            <button onclick="setDrawColor('#fef08a')" class="w-6 h-6 bg-yellow-200 rounded border border-white"></button>
+                            <button onclick="setDrawColor('#ffffff')" class="w-6 h-6 bg-white rounded border border-white"></button>
+                            <button onclick="setDrawColor('#120722')" class="w-6 h-6 bg-[#120722] rounded border border-white flex items-center justify-center text-xs"><i class="fa-solid fa-eraser text-white"></i></button>
+                            <button onclick="clearPixelPad()" class="pixel-btn px-2 text-xs rounded text-pink-300">Clear</button>
+                        </div>
+                        <canvas id="padCanvas" width="160" height="120" class="border-2 border-purple-500 bg-[#120722] cursor-crosshair rounded pixelated"></canvas>
+                    </div>
+
+                    <div id="tab-content-vis" class="hidden space-y-3 text-center">
+                        <div class="bg-[#120722] p-4 rounded-lg border border-purple-900/80 space-y-3">
+                            <h3 class="text-xl text-pink-300 font-bold"><i class="fa-solid fa-cloud-sun-rain"></i> Window Atmosphere Preset</h3>
+                            <div class="grid grid-cols-2 gap-2 max-w-md mx-auto">
+                                <button onclick="setWeatherMode('rain')" class="pixel-btn p-2 rounded text-pink-200">🌧️ Rain Storm</button>
+                                <button onclick="setWeatherMode('snow')" class="pixel-btn p-2 rounded text-indigo-200">❄️ Soft Snow</button>
+                                <button onclick="setWeatherMode('clear')" class="pixel-btn p-2 rounded text-yellow-200">🌙 Clear Night</button>
+                                <button onclick="setWeatherMode('shooting_stars')" class="pixel-btn p-2 rounded text-emerald-200">⭐ Shooting Stars</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desk Smartphone Modal (Realistic OS Interface) -->
+        <div id="phone-modal" class="absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 z-30">
+            <div class="w-[310px] h-[520px] bg-[#1a1329] rounded-[36px] p-3 text-purple-200 flex flex-col border-4 border-[#3b2354] shadow-2xl relative overflow-hidden">
+                
+                <!-- Phone Top Speaker Notch & Camera -->
+                <div class="w-28 h-4 bg-[#0a0414] rounded-b-xl mx-auto flex items-center justify-center space-x-2 z-20 mb-1">
+                    <div class="w-2 h-2 bg-purple-900 rounded-full"></div>
+                    <div class="w-8 h-1 bg-purple-900 rounded-full"></div>
+                </div>
+
+                <!-- Phone Screen Container -->
+                <div class="flex-1 bg-[#0f091f] rounded-[24px] border-2 border-purple-900/60 flex flex-col overflow-hidden relative">
+                    
+                    <!-- Top Status Bar -->
+                    <div class="flex justify-between items-center px-4 py-1 text-[11px] font-mono text-pink-300 bg-[#170d2b] border-b border-purple-900/40">
+                        <span id="phone-status-time">22:30</span>
+                        <div class="flex space-x-2 items-center text-[10px]">
+                            <i class="fa-solid fa-wifi"></i>
+                            <i class="fa-solid fa-signal"></i>
+                            <i class="fa-solid fa-battery-three-quarters text-emerald-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- App Content Viewport -->
+                    <div class="flex-1 p-3 overflow-y-auto relative">
+                        
+                        <!-- DEFAULT PHONE HOME SCREEN (3x3 Apps Grid) -->
+                        <div id="phone-home-screen" class="space-y-4 pt-2">
+                            <div class="text-center">
+                                <div id="phone-clock-widget" class="text-3xl font-mono font-bold text-pink-300 tracking-wider">22:30</div>
+                                <div class="text-[11px] text-purple-400 font-mono">Cozy Pixel OS</div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3 pt-2">
+                                <button onclick="openPhoneApp('gallery')" class="flex flex-col items-center gap-1 group">
+                                    <div class="w-12 h-12 bg-pink-600/30 border-2 border-pink-500 rounded-2xl flex items-center justify-center text-pink-300 text-xl group-hover:scale-105 transition"><i class="fa-solid fa-images"></i></div>
+                                    <span class="text-[11px] font-mono text-purple-200">Gallery</span>
+                                </button>
+                                <button onclick="openPhoneApp('alarm')" class="flex flex-col items-center gap-1 group">
+                                    <div class="w-12 h-12 bg-indigo-600/30 border-2 border-indigo-500 rounded-2xl flex items-center justify-center text-indigo-300 text-xl group-hover:scale-105 transition"><i class="fa-solid fa-clock"></i></div>
+                                    <span class="text-[11px] font-mono text-purple-200">Clock</span>
+                                </button>
+                                <button onclick="openPhoneApp('diary')" class="flex flex-col items-center gap-1 group">
+                                    <div class="w-12 h-12 bg-purple-600/30 border-2 border-purple-500 rounded-2xl flex items-center justify-center text-purple-300 text-xl group-hover:scale-105 transition"><i class="fa-solid fa-book-journal-whills"></i></div>
+                                    <span class="text-[11px] font-mono text-purple-200">Diary</span>
+                                </button>
+                                <button onclick="openPhoneApp('game')" class="flex flex-col items-center gap-1 group">
+                                    <div class="w-12 h-12 bg-emerald-600/30 border-2 border-emerald-500 rounded-2xl flex items-center justify-center text-emerald-300 text-xl group-hover:scale-105 transition"><i class="fa-solid fa-gamepad"></i></div>
+                                    <span class="text-[11px] font-mono text-purple-200">Snake</span>
+                                </button>
+                                <button onclick="openPhoneApp('sfx')" class="flex flex-col items-center gap-1 group">
+                                    <div class="w-12 h-12 bg-amber-600/30 border-2 border-amber-500 rounded-2xl flex items-center justify-center text-amber-300 text-xl group-hover:scale-105 transition"><i class="fa-solid fa-volume-high"></i></div>
+                                    <span class="text-[11px] font-mono text-purple-200">Sounds</span>
+                                </button>
+                                <button onclick="openPhoneApp('mood')" class="flex flex-col items-center gap-1 group">
+                                    <div class="w-12 h-12 bg-sky-600/30 border-2 border-sky-500 rounded-2xl flex items-center justify-center text-sky-300 text-xl group-hover:scale-105 transition"><i class="fa-solid fa-palette"></i></div>
+                                    <span class="text-[11px] font-mono text-purple-200">Themes</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- APP 1: GALLERY APP -->
+                        <div id="phone-app-gallery" class="hidden space-y-2">
+                            <div class="flex justify-between items-center border-b border-purple-800 pb-1">
+                                <span class="text-xs font-bold text-pink-300"><i class="fa-solid fa-images"></i> Photo Gallery</span>
+                                <span id="gallery-counter" class="text-[10px] text-purple-400">1/3</span>
+                            </div>
+                            <div class="w-full h-40 bg-purple-950/80 rounded-xl border border-pink-500/50 flex items-center justify-center relative overflow-hidden">
+                                <img id="gallery-img-view" src="" class="hidden w-full h-full object-cover rounded-xl" alt="Gallery photo">
+                                <div id="gallery-icon-view" class="text-pink-300 text-5xl"><i class="fa-solid fa-cat"></i></div>
+                            </div>
+                            <p id="gallery-caption" class="text-xs text-center text-pink-300 font-mono">Cozy Memory #1</p>
+                            <div class="flex justify-between gap-2 pt-1">
+                                <button onclick="prevPhoto()" class="pixel-btn flex-1 py-1 rounded text-xs text-pink-200">◄ Prev</button>
+                                <button onclick="nextPhoto()" class="pixel-btn flex-1 py-1 rounded text-xs text-pink-200">Next ►</button>
+                            </div>
+                        </div>
+
+                        <!-- APP 2: ALARM APP -->
+                        <div id="phone-app-alarm" class="hidden space-y-3">
+                            <div class="text-xs font-bold text-indigo-300 border-b border-purple-800 pb-1"><i class="fa-solid fa-clock"></i> Alarm Clock</div>
+                            <div class="bg-[#180d2e] p-3 rounded-xl border border-purple-800 text-center space-y-2">
+                                <input type="time" id="alarm-time-input" value="07:30" class="bg-purple-950 border border-pink-500 rounded px-2 py-1 text-pink-300 font-mono text-xl text-center">
+                                <button id="alarm-toggle-btn" onclick="toggleAlarm()" class="pixel-btn w-full py-1.5 rounded text-xs text-emerald-300 font-bold">Enable Alarm</button>
+                                <p id="alarm-active-label" class="text-[11px] text-emerald-400 font-mono">Status: OFF</p>
+                            </div>
+                        </div>
+
+                        <!-- APP 3: PERSONAL DIARY -->
+                        <div id="phone-app-diary" class="hidden space-y-2">
+                            <div class="text-xs font-bold text-purple-300 border-b border-purple-800 pb-1"><i class="fa-solid fa-book-journal-whills"></i> Personal Diary</div>
+                            <div class="flex gap-1">
+                                <input type="text" id="diary-input" placeholder="Dear Diary..." class="flex-1 bg-[#180d2e] border border-purple-700 rounded px-2 py-1 text-white text-xs font-mono">
+                                <button onclick="saveDiaryEntry()" class="pixel-btn px-2 py-1 rounded text-xs text-pink-200 font-bold">Save</button>
+                            </div>
+                            <ul id="diary-entries-list" class="space-y-1.5 max-h-[220px] overflow-y-auto"></ul>
+                        </div>
+
+                        <!-- APP 4: SNAKE GAME -->
+                        <div id="phone-app-game" class="hidden text-center space-y-2">
+                            <div class="flex justify-between items-center text-xs text-pink-300 font-mono">
+                                <span>Score: <span id="snake-score">0</span></span>
+                                <button onclick="resetSnakeGame()" class="pixel-btn px-2 py-0.5 rounded text-[10px] text-emerald-300">Restart</button>
+                            </div>
+                            <canvas id="snakeCanvas" width="180" height="130" class="border-2 border-pink-500 bg-[#0a0314] rounded mx-auto pixelated"></canvas>
+                            <div class="grid grid-cols-3 gap-1 w-28 mx-auto text-xs">
+                                <div></div>
+                                <button onclick="changeSnakeDir('UP')" class="pixel-btn py-1 rounded text-pink-200">▲</button>
+                                <div></div>
+                                <button onclick="changeSnakeDir('LEFT')" class="pixel-btn py-1 rounded text-pink-200">◄</button>
+                                <button onclick="changeSnakeDir('DOWN')" class="pixel-btn py-1 rounded text-pink-200">▼</button>
+                                <button onclick="changeSnakeDir('RIGHT')" class="pixel-btn py-1 rounded text-pink-200">►</button>
+                            </div>
+                        </div>
+
+                        <!-- APP 5: SOUNDBOARD -->
+                        <div id="phone-app-sfx" class="hidden space-y-2">
+                            <div class="text-xs font-bold text-amber-300 border-b border-purple-800 pb-1"><i class="fa-solid fa-volume-high"></i> Soundboard</div>
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <button onclick="playSFX('meow')" class="pixel-btn p-2 rounded text-xs text-pink-200"><i class="fa-solid fa-cat mr-1 text-orange-400"></i> Meow</button>
+                                <button onclick="playSFX('rain')" class="pixel-btn p-2 rounded text-xs text-indigo-200"><i class="fa-solid fa-cloud-rain mr-1 text-sky-400"></i> Rain Splash</button>
+                                <button onclick="playSFX('sip')" class="pixel-btn p-2 rounded text-xs text-emerald-200"><i class="fa-solid fa-mug-hot mr-1 text-amber-400"></i> Tea Sip</button>
+                                <button onclick="playSFX('thump')" class="pixel-btn p-2 rounded text-xs text-purple-200"><i class="fa-solid fa-hand mr-1 text-purple-400"></i> Thump</button>
+                            </div>
+                        </div>
+
+                        <!-- APP 6: WALL MOOD THEMES -->
+                        <div id="phone-app-mood" class="hidden space-y-2">
+                            <div class="text-xs font-bold text-sky-300 border-b border-purple-800 pb-1"><i class="fa-solid fa-palette"></i> Room Wall Theme</div>
+                            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                                <button onclick="setLightingTheme('violet')" class="pixel-btn p-2 rounded text-purple-300">Cozy Violet</button>
+                                <button onclick="setLightingTheme('sunset')" class="pixel-btn p-2 rounded text-pink-300">Sunset Glow</button>
+                                <button onclick="setLightingTheme('night')" class="pixel-btn p-2 rounded text-blue-300">Deep Night</button>
+                                <button onclick="setLightingTheme('cyber')" class="pixel-btn p-2 rounded text-emerald-300">Cyber Pink</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom OS Navigation Bar -->
+                    <div class="h-8 bg-[#150b28] border-t border-purple-900/60 flex justify-around items-center text-purple-400 text-sm">
+                        <button onclick="returnPhoneHome()" class="hover:text-pink-300 transition" title="Home Screen"><i class="fa-regular fa-circle text-base"></i></button>
+                        <button onclick="closePhoneModal()" class="hover:text-pink-300 transition" title="Close Phone"><i class="fa-solid fa-power-off text-xs text-pink-500"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Interactive Control Bar -->
+        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 bg-slate-950/85 backdrop-blur border-2 border-purple-500/50 px-3 py-1.5 rounded-xl flex items-center space-x-2 sm:space-x-3 shadow-2xl z-10 text-xs sm:text-sm">
+            <button onclick="toggleAllLights()" class="hover:text-pink-300 transition flex items-center gap-1" title="Toggle Lights">
+                <i class="fa-solid fa-lightbulb text-yellow-400"></i> Lights
+            </button>
+            <span class="text-purple-700">|</span>
+            <button onclick="cycleWeather()" class="hover:text-pink-300 transition flex items-center gap-1" title="Change Weather Window">
+                <i class="fa-solid fa-cloud-moon text-indigo-400"></i> <span id="weather-label">Cozy Rain</span>
+            </button>
+            <span class="text-purple-700">|</span>
+            <button onclick="toggleBlinds()" class="hover:text-pink-300 transition flex items-center gap-1" title="Toggle Blinds">
+                <i class="fa-solid fa-scroll text-amber-300"></i> Blinds
+            </button>
+            <span class="text-purple-700">|</span>
+            <button onclick="interactCat()" class="hover:text-pink-300 transition flex items-center gap-1" title="Pet or Pick Cat">
+                <i class="fa-solid fa-cat text-orange-400"></i> Cat (<span id="cat-state-label">Sleeping</span>)
+            </button>
+            <span class="text-purple-700">|</span>
+            <button onclick="resetLayout()" class="hover:text-pink-300 transition flex items-center gap-1 text-emerald-400" title="Reset Moveable Items">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('roomCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const V_WIDTH = 640;
+        const V_HEIGHT = 360;
+
+        canvas.width = V_WIDTH;
+        canvas.height = V_HEIGHT;
+
+        const CAT_STATES = ['sleeping', 'grooming', 'stretching', 'looking', 'purring', 'walking'];
+
+        const state = {
+            lightsOn: true,
+            bedLampOn: true,
+            deskLampOn: true,
+            starLampOn: true,
+            fairyLightsOn: true,
+            neonOn: true,
+            neonColorIdx: 0,
+            blindsClosed: false,
+            weather: 'rain',
+            time24h: true,
+            pcOpen: false,
+            phoneModalOpen: false,
+            bookModalOpen: false,
+            hoverObject: null,
+            rugPatternIdx: 0,
+            chairFacingIdx: 0, 
+            lightingTheme: 'violet',
+            
+            cat: {
+                x: 125,
+                y: 202,
+                vx: 0,
+                vy: 0,
+                targetX: 125,
+                targetY: 202,
+                isDragging: false,
+                state: 'sleeping',
+                frame: 0,
+                heartAnim: 0,
+                timer: 0,
+                facingLeft: false
+            },
+
+            particles: [],
+            audio: { chords: false, rain: false, fire: false, typing: false }
+        };
+
+        const NEON_COLORS = ['#ff77e9', '#38bdf8', '#a855f7', '#fef08a'];
+
+        // FIXED PROPS: Cushion / Pillow position fixed on top of the bed (y: 195)
+        const props = {
+            mug: { x: 398, y: 188, w: 12, h: 14, origX: 398, origY: 188, vx: 0, vy: 0, isDragging: false, steam: true, filled: true },
+            plushie: { x: 210, y: 200, w: 18, h: 22, origX: 210, origY: 200, vx: 0, vy: 0, isDragging: false },
+            cushion: { x: 80, y: 195, w: 28, h: 16, origX: 80, origY: 195, vx: 0, vy: 0, isDragging: false },
+            deskLamp: { x: 570, y: 150, w: 25, h: 45, origX: 570, origY: 150, vx: 0, vy: 0, isDragging: false },
+            phone: { x: 535, y: 188, w: 12, h: 18, origX: 535, origY: 188, vx: 0, vy: 0, isDragging: false }
+        };
+
+        const surfaces = [
+            { y: 290, minX: 0, maxX: 640 },
+            { y: 200, minX: 390, maxX: 620 },
+            { y: 240, minX: 10, maxX: 65 },
+            { y: 215, minX: 15, maxX: 240 },
+            { y: 180, minX: 280, maxX: 380 }
+        ];
+
+        const quotes = [
+            "Rest is not a luxury, it is an essential part of creativity.",
+            "In the middle of noise, find your quiet sanctuary.",
+            "Small steps every single day lead to big cozy dreams.",
+            "Take a deep breath. You are doing just fine.",
+            "Soft music, warm drink, peaceful mind.",
+            "Happiness is a warm cup of tea and a sleeping cat."
+        ];
+
+        // Hitboxes registered with exact positions
+        const hitboxes = [
+            { id: 'cat', name: '🐱 Cat (Drag or Click to Pet)', getRect: () => [state.cat.x - 15, state.cat.y - 15, 45, 35], action: interactCat, draggable: true },
+            { id: 'mug', name: '☕ Mug (Drag / Click to Drink)', getRect: () => [props.mug.x - 2, props.mug.y - 2, props.mug.w + 4, props.mug.h + 4], action: interactMug, draggable: true },
+            { id: 'plushie', name: '🧸 Teddy Bear (Drag Me!)', getRect: () => [props.plushie.x, props.plushie.y, props.plushie.w, props.plushie.h], action: () => playClickSound(), draggable: true },
+            { id: 'cushion', name: '🛋️ Cozy Pillow (Drag / Change Rug)', getRect: () => [props.cushion.x, props.cushion.y, props.cushion.w, props.cushion.h], action: cycleRugPattern, draggable: true },
+            { id: 'deskLamp', name: '💡 Desk Lamp (Click to Toggle / Drag)', getRect: () => [props.deskLamp.x, props.deskLamp.y, props.deskLamp.w, props.deskLamp.h], action: () => { state.deskLampOn = !state.deskLampOn; playClickSound(); }, draggable: true },
+            { id: 'phone', name: '📱 Smartphone (Click to Open Apps)', getRect: () => [props.phone.x - 2, props.phone.y - 2, props.phone.w + 4, props.phone.h + 4], action: openPhoneModal, draggable: true },
+            
+            { id: 'plantIvy', name: '🌿 String-of-Pearls Ivy (Click to Water)', getRect: () => [15, 0, 50, 90], action: () => waterPlant(35, 60) },
+            { id: 'plantTerrarium', name: '🪴 Hanging Glass Terrarium (Click to Sway)', getRect: () => [100, 0, 45, 95], action: () => waterPlant(120, 65) },
+            { id: 'plantMonstera', name: '🪴 Potted Shelf Monstera (Click to Rustle)', getRect: () => [510, 20, 30, 38], action: () => waterPlant(525, 38) },
+            { id: 'plantCactus', name: '🌵 Mini Desk Cactus (Click to Water)', getRect: () => [395, 182, 18, 20], action: () => waterPlant(404, 190) },
+
+            { id: 'pc', name: '💻 Open PC Station', getRect: () => [430, 160, 85, 60], action: openPC },
+            { id: 'chair', name: '🪑 Spin Office Chair', getRect: () => [400, 205, 42, 75], action: spinChair },
+            { id: 'clock', name: '🕒 Digital Clock (Toggle 12h/24h)', getRect: () => [335, 166, 36, 18], action: toggleClockFormat },
+            { id: 'window', name: '🌧️ Window (Click for Weather)', getRect: () => [130, 55, 150, 115], action: cycleWeather },
+            { id: 'blinds', name: '📜 Pull Window Blinds', getRect: () => [130, 45, 150, 15], action: toggleBlinds },
+            { id: 'neon', name: '✨ Neon Sign (Click to Change Color)', getRect: () => [310, 80, 70, 55], action: cycleNeonColor },
+            { id: 'starLamp', name: '⭐ Star Lamp', getRect: () => [295, 160, 30, 30], action: () => { state.starLampOn = !state.starLampOn; playClickSound(); } },
+            { id: 'bedLamp', name: '💡 Nightstand Lamp', getRect: () => [15, 230, 30, 30], action: () => { state.bedLampOn = !state.bedLampOn; playClickSound(); } },
+            { id: 'books', name: '📚 Bookshelf (Click to Read / Notes)', getRect: () => [440, 35, 80, 30], action: openBookModal }
+        ];
+
+        const rainDrops = Array.from({ length: 65 }, () => ({
+            x: 130 + Math.random() * 150,
+            y: 55 + Math.random() * 115,
+            length: 5 + Math.random() * 8,
+            speed: 3.5 + Math.random() * 3.5
+        }));
+
+        const snowFlakes = Array.from({ length: 50 }, () => ({
+            x: 130 + Math.random() * 150,
+            y: 55 + Math.random() * 115,
+            size: Math.random() > 0.6 ? 2 : 1,
+            speed: 0.5 + Math.random() * 0.8,
+            drift: (Math.random() - 0.5) * 0.5
+        }));
+
+        const shootingStars = [];
+
+        // Web Audio Synthesizer Engine
+        let audioCtx = null;
+        let masterGain = null;
+        let audioNodes = {};
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.6;
+            masterGain.connect(audioCtx.destination);
+        }
+
+        function playClickSound() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(650, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(250, audioCtx.currentTime + 0.05);
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.05);
+            osc.connect(g);
+            g.connect(masterGain);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        function playLandingThump() {
+            initAudio();
+            if (audioCtx && audioCtx.state !== 'suspended') {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+                g.gain.setValueAtTime(0.15, now);
+                g.gain.linearRampToValueAtTime(0, now + 0.08);
+                osc.connect(g);
+                g.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        }
+
+        function playWaterSound() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    if (!audioCtx) return;
+                    const osc = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400 + Math.random() * 300, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(800 + Math.random() * 200, audioCtx.currentTime + 0.06);
+                    g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.06);
+                    osc.connect(g);
+                    g.connect(masterGain);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.06);
+                }, i * 60);
+            }
+        }
+
+        function playCatMeow() {
+            initAudio();
+            if (audioCtx && audioCtx.state !== 'suspended') {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(460, now);
+                osc.frequency.exponentialRampToValueAtTime(680, now + 0.15);
+                osc.frequency.exponentialRampToValueAtTime(390, now + 0.38);
+
+                g.gain.setValueAtTime(0.01, now);
+                g.gain.linearRampToValueAtTime(0.12, now + 0.1);
+                g.gain.linearRampToValueAtTime(0, now + 0.38);
+
+                osc.connect(g);
+                g.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.38);
+            }
+        }
+
+        function playSFX(type) {
+            initAudio();
+            if (type === 'meow') playCatMeow();
+            if (type === 'rain') playWaterSound();
+            if (type === 'sip') playClickSound();
+            if (type === 'thump') playLandingThump();
+        }
+
+        function toggleAudioTrack(track) {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            state.audio[track] = !state.audio[track];
+            const btn = document.getElementById(`btn-sound-${track}`);
+            const st = document.getElementById(`st-${track}`);
+
+            if (state.audio[track]) {
+                btn.classList.add('pixel-btn-active');
+                if (st) st.innerText = "ON";
+                startAudioLoop(track);
+            } else {
+                btn.classList.remove('pixel-btn-active');
+                if (st) st.innerText = "OFF";
+                stopAudioLoop(track);
+            }
+        }
+
+        const chordsList = [
+            [261.63, 329.63, 392.00, 493.88],
+            [220.00, 261.63, 329.63, 392.00],
+            [174.61, 220.00, 261.63, 329.63],
+            [196.00, 246.94, 293.66, 349.23]
+        ];
+        let chordIdx = 0;
+
+        function startAudioLoop(track) {
+            if (track === 'chords') {
+                audioNodes.chordsInterval = setInterval(() => {
+                    if (!state.audio.chords) return;
+                    const now = audioCtx.currentTime;
+                    const chord = chordsList[chordIdx];
+                    chordIdx = (chordIdx + 1) % chordsList.length;
+
+                    chord.forEach((freq, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + i * 0.08);
+
+                        gain.gain.setValueAtTime(0, now + i * 0.08);
+                        gain.gain.linearRampToValueAtTime(0.05, now + i * 0.08 + 0.3);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 3.8);
+
+                        const filter = audioCtx.createBiquadFilter();
+                        filter.type = 'lowpass';
+                        filter.frequency.value = 850;
+
+                        osc.connect(gain);
+                        gain.connect(filter);
+                        filter.connect(masterGain);
+
+                        osc.start(now + i * 0.08);
+                        osc.stop(now + i * 0.08 + 4.0);
+                    });
+                }, 4000);
+            } else if (track === 'rain') {
+                const bufferSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.12;
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+                noise.start();
+                audioNodes.rain = noise;
+            } else if (track === 'fire') {
+                const bufferSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (Math.random() > 0.96 ? 2.5 : 0.3);
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 600;
+
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.1;
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+                noise.start();
+                audioNodes.fire = noise;
+            } else if (track === 'typing') {
+                audioNodes.typingInterval = setInterval(() => {
+                    if (!state.audio.typing || Math.random() > 0.7) return;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300 + Math.random() * 200, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.04);
+                }, 150);
+            }
+        }
+
+        function stopAudioLoop(track) {
+            if (track === 'chords' && audioNodes.chordsInterval) clearInterval(audioNodes.chordsInterval);
+            if (track === 'typing' && audioNodes.typingInterval) clearInterval(audioNodes.typingInterval);
+            if (audioNodes[track]) {
+                try { audioNodes[track].stop(); } catch(e){}
+                audioNodes[track] = null;
+            }
+        }
+
+        document.getElementById('volume-master').addEventListener('input', (e) => {
+            if (masterGain) masterGain.gain.value = e.target.value;
+        });
+
+        // Interactive Handlers
+        function interactCat() {
+            const available = CAT_STATES.filter(s => s !== state.cat.state && s !== 'walking');
+            state.cat.state = available[Math.floor(Math.random() * available.length)];
+            state.cat.heartAnim = 45;
+            state.cat.timer = 0;
+
+            const label = document.getElementById('cat-state-label');
+            if (label) label.innerText = state.cat.state.charAt(0).toUpperCase() + state.cat.state.slice(1);
+
+            playCatMeow();
+        }
+
+        function waterPlant(px, py) {
+            playWaterSound();
+            for (let i = 0; i < 12; i++) {
+                state.particles.push({
+                    x: px + (Math.random() - 0.5) * 15,
+                    y: py + (Math.random() - 0.5) * 10,
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: 1 + Math.random() * 2,
+                    color: Math.random() > 0.4 ? "#34d399" : "#38bdf8",
+                    life: 30 + Math.random() * 20
+                });
+            }
+        }
+
+        function interactMug() {
+            props.mug.filled = !props.mug.filled;
+            props.mug.steam = props.mug.filled;
+            playClickSound();
+        }
+
+        function cycleRugPattern() {
+            state.rugPatternIdx = (state.rugPatternIdx + 1) % 3;
+            playClickSound();
+        }
+
+        function spinChair() {
+            state.chairFacingIdx = (state.chairFacingIdx + 1) % 4; // 0 -> 1 -> 2 -> 3 -> 0
+            playClickSound();
+        }
+
+        function toggleClockFormat() {
+            state.time24h = !state.time24h;
+            playClickSound();
+        }
+
+        function setWeatherMode(mode) {
+            state.weather = mode;
+            const label = document.getElementById('weather-label');
+            if (label) {
+                if (state.weather === 'rain') label.innerText = 'Cozy Rain';
+                else if (state.weather === 'snow') label.innerText = 'Soft Snow';
+                else if (state.weather === 'clear') label.innerText = 'Clear Night';
+                else label.innerText = 'Shooting Stars';
+            }
+            playClickSound();
+        }
+
+        function cycleWeather() {
+            const list = ['rain', 'snow', 'clear', 'shooting_stars'];
+            const idx = list.indexOf(state.weather);
+            setWeatherMode(list[(idx + 1) % list.length]);
+        }
+
+        function toggleBlinds() {
+            state.blindsClosed = !state.blindsClosed;
+            playClickSound();
+        }
+
+        function cycleNeonColor() {
+            state.neonColorIdx = (state.neonColorIdx + 1) % NEON_COLORS.length;
+            playClickSound();
+        }
+
+        function setLightingTheme(theme) {
+            state.lightingTheme = theme;
+            playClickSound();
+        }
+
+        function toggleAllLights() {
+            state.lightsOn = !state.lightsOn;
+            state.bedLampOn = state.lightsOn;
+            state.deskLampOn = state.lightsOn;
+            state.starLampOn = state.lightsOn;
+            state.fairyLightsOn = state.lightsOn;
+            state.neonOn = state.lightsOn;
+            playClickSound();
+        }
+
+        function resetLayout() {
+            for (const key in props) {
+                props[key].x = props[key].origX;
+                props[key].y = props[key].origY;
+                props[key].vx = 0;
+                props[key].vy = 0;
+                props[key].isDragging = false;
+            }
+            state.cat.x = 125;
+            state.cat.y = 202;
+            state.cat.vx = 0;
+            state.cat.vy = 0;
+            state.cat.targetX = 125;
+            state.cat.targetY = 202;
+            state.cat.state = 'sleeping';
+            playClickSound();
+        }
+
+        function openBookModal() {
+            state.bookModalOpen = true;
+            playClickSound();
+            readRandomQuote();
+            renderPersonalNotes();
+            document.getElementById('book-modal').classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        document.getElementById('close-book-btn').addEventListener('click', () => {
+            state.bookModalOpen = false;
+            document.getElementById('book-modal').classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        function switchBookTab(tab) {
+            playClickSound();
+            if (tab === 'quotes') {
+                document.getElementById('book-view-quotes').classList.remove('hidden');
+                document.getElementById('book-view-notes').classList.add('hidden');
+                document.getElementById('book-tab-quotes').classList.replace('text-purple-400', 'text-pink-300');
+                document.getElementById('book-tab-quotes').classList.add('border-b-2', 'border-pink-400');
+                document.getElementById('book-tab-notes').classList.replace('text-pink-300', 'text-purple-400');
+                document.getElementById('book-tab-notes').classList.remove('border-b-2', 'border-pink-400');
+            } else {
+                document.getElementById('book-view-quotes').classList.add('hidden');
+                document.getElementById('book-view-notes').classList.remove('hidden');
+                document.getElementById('book-tab-notes').classList.replace('text-purple-400', 'text-pink-300');
+                document.getElementById('book-tab-notes').classList.add('border-b-2', 'border-pink-400');
+                document.getElementById('book-tab-quotes').classList.replace('text-pink-300', 'text-purple-400');
+                document.getElementById('book-tab-quotes').classList.remove('border-b-2', 'border-pink-400');
+            }
+        }
+
+        function readRandomQuote() {
+            const q = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('book-quote').innerText = `"${q}"`;
+            playClickSound();
+        }
+
+        let personalNotes = JSON.parse(localStorage.getItem('lofi_personal_notes') || '["Remember to take cozy study breaks!", "Water the succulents on Friday."]');
+
+        function renderPersonalNotes() {
+            const list = document.getElementById('personal-notes-list');
+            if (!list) return;
+            list.innerHTML = personalNotes.map((n, i) => `
+                <li class="flex justify-between items-center bg-[#180a2c] px-3 py-1.5 rounded border border-purple-900/80 font-mono text-base">
+                    <span class="truncate pr-2">${n}</span>
+                    <button onclick="deletePersonalNote(${i})" class="text-pink-400 hover:text-pink-300"><i class="fa-solid fa-trash text-xs"></i></button>
+                </li>
+            `).join('');
+        }
+
+        function addPersonalNote() {
+            const input = document.getElementById('personal-note-input');
+            if (input.value.trim()) {
+                personalNotes.push(input.value.trim());
+                localStorage.setItem('lofi_personal_notes', JSON.stringify(personalNotes));
+                input.value = '';
+                renderPersonalNotes();
+                playClickSound();
+            }
+        }
+
+        function deletePersonalNote(idx) {
+            personalNotes.splice(idx, 1);
+            localStorage.setItem('lofi_personal_notes', JSON.stringify(personalNotes));
+            renderPersonalNotes();
+            playClickSound();
+        }
+
+        // --- SMARTPHONE OS LOGIC & GALLERY CUSTOM LINKS ---
+        const imageGallery = [
+            { url: "", icon: '<i class="fa-solid fa-cat"></i>', caption: "Cozy Memory #1" },
+            { url: "", icon: '<i class="fa-solid fa-mug-hot"></i>', caption: "Warm Tea Vibe #2" },
+            { url: "", icon: '<i class="fa-solid fa-cloud-moon"></i>', caption: "Night Window View #3" }
+        ];
+        let currentPhotoIdx = 0;
+
+        function openPhoneApp(appId) {
+            playClickSound();
+            document.getElementById('phone-home-screen').classList.add('hidden');
+            ['gallery', 'alarm', 'diary', 'game', 'sfx', 'mood'].forEach(a => {
+                document.getElementById(`phone-app-${a}`).classList.add('hidden');
+            });
+            document.getElementById(`phone-app-${appId}`).classList.remove('hidden');
+            if (appId === 'gallery') updateGalleryView();
+            if (appId === 'game') initSnakeGame();
+        }
+
+        function returnPhoneHome() {
+            playClickSound();
+            ['gallery', 'alarm', 'diary', 'game', 'sfx', 'mood'].forEach(a => {
+                document.getElementById(`phone-app-${a}`).classList.add('hidden');
+            });
+            document.getElementById('phone-home-screen').classList.remove('hidden');
+        }
+
+        function updateGalleryView() {
+            const item = imageGallery[currentPhotoIdx];
+            document.getElementById('gallery-counter').innerText = `${currentPhotoIdx + 1}/${imageGallery.length}`;
+            document.getElementById('gallery-caption').innerText = item.caption;
+
+            const imgEl = document.getElementById('gallery-img-view');
+            const iconEl = document.getElementById('gallery-icon-view');
+
+            if (item.url && item.url.trim() !== "") {
+                imgEl.src = item.url;
+                imgEl.classList.remove('hidden');
+                iconEl.classList.add('hidden');
+            } else {
+                imgEl.classList.add('hidden');
+                iconEl.innerHTML = item.icon;
+                iconEl.classList.remove('hidden');
+            }
+        }
+
+        function nextPhoto() {
+            currentPhotoIdx = (currentPhotoIdx + 1) % imageGallery.length;
+            updateGalleryView();
+            playClickSound();
+        }
+
+        function prevPhoto() {
+            currentPhotoIdx = (currentPhotoIdx - 1 + imageGallery.length) % imageGallery.length;
+            updateGalleryView();
+            playClickSound();
+        }
+
+        let alarmActive = false;
+        function toggleAlarm() {
+            alarmActive = !alarmActive;
+            playClickSound();
+            const btn = document.getElementById('alarm-toggle-btn');
+            const lbl = document.getElementById('alarm-active-label');
+            if (alarmActive) {
+                btn.innerText = "Disable Alarm";
+                lbl.innerText = "Status: ACTIVE 🔔";
+                lbl.classList.replace('text-emerald-400', 'text-pink-400');
+            } else {
+                btn.innerText = "Enable Alarm";
+                lbl.innerText = "Status: OFF";
+                lbl.classList.replace('text-pink-400', 'text-emerald-400');
+            }
+        }
+
+        let diaryEntries = JSON.parse(localStorage.getItem('phone_diary_entries') || '["Cozy study session under room lights."]');
+        function renderDiary() {
+            const list = document.getElementById('diary-entries-list');
+            list.innerHTML = diaryEntries.map((e, i) => `
+                <li class="bg-[#180d2e] px-2 py-1 rounded border border-purple-900 font-mono text-xs flex justify-between">
+                    <span>${e}</span>
+                    <button onclick="deleteDiaryEntry(${i})" class="text-pink-400"><i class="fa-solid fa-trash"></i></button>
+                </li>
+            `).join('');
+        }
+        function saveDiaryEntry() {
+            const inp = document.getElementById('diary-input');
+            if (inp.value.trim()) {
+                diaryEntries.push(inp.value.trim());
+                localStorage.setItem('phone_diary_entries', JSON.stringify(diaryEntries));
+                inp.value = '';
+                renderDiary();
+                playClickSound();
+            }
+        }
+        function deleteDiaryEntry(idx) {
+            diaryEntries.splice(idx, 1);
+            localStorage.setItem('phone_diary_entries', JSON.stringify(diaryEntries));
+            renderDiary();
+            playClickSound();
+        }
+        renderDiary();
+
+        // Snake Game Engine
+        const snakeCanvas = document.getElementById('snakeCanvas');
+        const snakeCtx = snakeCanvas.getContext('2d');
+        let snake = [{x: 5, y: 5}];
+        let food = {x: 10, y: 7};
+        let snakeDir = 'RIGHT';
+        let snakeScore = 0;
+        let snakeInterval = null;
+
+        function initSnakeGame() {
+            snake = [{x: 5, y: 5}];
+            food = {x: 10, y: 7};
+            snakeDir = 'RIGHT';
+            snakeScore = 0;
+            document.getElementById('snake-score').innerText = snakeScore;
+            if (snakeInterval) clearInterval(snakeInterval);
+            snakeInterval = setInterval(updateSnake, 180);
+        }
+
+        function changeSnakeDir(dir) {
+            if (dir === 'UP' && snakeDir !== 'DOWN') snakeDir = 'UP';
+            if (dir === 'DOWN' && snakeDir !== 'UP') snakeDir = 'DOWN';
+            if (dir === 'LEFT' && snakeDir !== 'RIGHT') snakeDir = 'LEFT';
+            if (dir === 'RIGHT' && snakeDir !== 'LEFT') snakeDir = 'RIGHT';
+        }
+
+        function updateSnake() {
+            let head = {...snake[0]};
+            if (snakeDir === 'UP') head.y--;
+            if (snakeDir === 'DOWN') head.y++;
+            if (snakeDir === 'LEFT') head.x--;
+            if (snakeDir === 'RIGHT') head.x++;
+
+            if (head.x < 0 || head.x >= 18 || head.y < 0 || head.y >= 13) {
+                initSnakeGame();
+                return;
+            }
+
+            if (head.x === food.x && head.y === food.y) {
+                snakeScore += 10;
+                document.getElementById('snake-score').innerText = snakeScore;
+                food = {x: Math.floor(Math.random() * 18), y: Math.floor(Math.random() * 13)};
+            } else {
+                snake.pop();
+            }
+
+            snake.unshift(head);
+
+            snakeCtx.fillStyle = '#0a0314';
+            snakeCtx.fillRect(0, 0, 180, 130);
+            snakeCtx.fillStyle = '#f472b6';
+            snakeCtx.fillRect(food.x * 10, food.y * 10, 8, 8);
+            snakeCtx.fillStyle = '#34d399';
+            snake.forEach(s => snakeCtx.fillRect(s.x * 10, s.y * 10, 8, 8));
+        }
+
+        function resetSnakeGame() {
+            initSnakeGame();
+            playClickSound();
+        }
+
+        // FIXED PHONE OPEN FUNCTION
+        function openPhoneModal() {
+            state.phoneModalOpen = true;
+            playClickSound();
+            returnPhoneHome();
+            const phoneModal = document.getElementById('phone-modal');
+            phoneModal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+        function closePhoneModal() {
+            state.phoneModalOpen = false;
+            document.getElementById('phone-modal').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function openPC() {
+            state.pcOpen = true;
+            playClickSound();
+            document.getElementById('pc-modal').classList.remove('opacity-0', 'pointer-events-none');
+        }
+        document.getElementById('close-pc-btn').addEventListener('click', () => {
+            state.pcOpen = false;
+            document.getElementById('pc-modal').classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        function switchTab(tab) {
+            playClickSound();
+            ['music', 'todo', 'timer', 'draw', 'vis'].forEach(t => {
+                document.getElementById(`tab-content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.replace('bg-purple-700', 'bg-purple-900/50');
+                document.getElementById(`tab-${t}`).classList.replace('text-white', 'text-purple-300');
+            });
+            document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.replace('bg-purple-900/50', 'bg-purple-700');
+            document.getElementById(`tab-${tab}`).classList.replace('text-purple-300', 'text-white');
+        }
+
+        const todos = ["Finish Lofi Beat", "Water Room Plants 🌿", "Read Pixel Book 📖"];
+        function renderTodos() {
+            const list = document.getElementById('todo-list');
+            list.innerHTML = todos.map((t, i) => `
+                <li class="flex justify-between items-center bg-[#180a2c] px-3 py-2 rounded border border-purple-900/80 font-mono text-lg">
+                    <span>${t}</span>
+                    <button onclick="deleteTodo(${i})" class="text-pink-400 hover:text-pink-300"><i class="fa-solid fa-trash"></i></button>
+                </li>
+            `).join('');
+        }
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            if (input.value.trim()) {
+                todos.push(input.value.trim());
+                input.value = '';
+                renderTodos();
+                playClickSound();
+            }
+        }
+        function deleteTodo(idx) {
+            todos.splice(idx, 1);
+            renderTodos();
+            playClickSound();
+        }
+        renderTodos();
+
+        let timerSeconds = 25 * 60;
+        let timerInterval = null;
+        function updateTimerDisplay() {
+            const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const s = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
+        }
+        function toggleTimer() {
+            playClickSound();
+            const btn = document.getElementById('start-timer-btn');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.innerText = "Resume Focus";
+            } else {
+                timerInterval = setInterval(() => {
+                    if (timerSeconds > 0) {
+                        timerSeconds--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        btn.innerText = "Start Focus";
+                    }
+                }, 1000);
+                btn.innerText = "Pause";
+            }
+        }
+        function resetTimer() {
+            playClickSound();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            timerSeconds = 25 * 60;
+            updateTimerDisplay();
+            document.getElementById('start-timer-btn').innerText = "Start Focus";
+        }
+
+        const padCanvas = document.getElementById('padCanvas');
+        const padCtx = padCanvas.getContext('2d');
+        let drawColor = '#ec4899';
+        let isDrawing = false;
+
+        function setDrawColor(color) {
+            drawColor = color;
+            playClickSound();
+        }
+        function clearPixelPad() {
+            padCtx.fillStyle = '#120722';
+            padCtx.fillRect(0, 0, padCanvas.width, padCanvas.height);
+            playClickSound();
+        }
+        clearPixelPad();
+
+        padCanvas.addEventListener('mousedown', (e) => { isDrawing = true; drawPixelPad(e); });
+        padCanvas.addEventListener('mousemove', (e) => { if (isDrawing) drawPixelPad(e); });
+        window.addEventListener('mouseup', () => { isDrawing = false; });
+
+        function drawPixelPad(e) {
+            const rect = padCanvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / (rect.width / 16));
+            const y = Math.floor((e.clientY - rect.top) / (rect.height / 12));
+            padCtx.fillStyle = drawColor;
+            padCtx.fillRect(x * 10, y * 10, 10, 10);
+        }
+
+        let draggedItem = null;
+        let dragOffset = { x: 0, y: 0 };
+        let prevMousePos = { x: 0, y: 0 };
+        let mouseVel = { x: 0, y: 0 };
+        let pointerDownStartPos = { x: 0, y: 0 };
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = V_WIDTH / rect.width;
+            const scaleY = V_HEIGHT / rect.height;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function handlePointerDown(e) {
+            const pos = getMousePos(e);
+            prevMousePos = pos;
+            pointerDownStartPos = pos;
+            mouseVel = { x: 0, y: 0 };
+
+            const catRect = [state.cat.x - 15, state.cat.y - 15, 45, 35];
+            if (pos.x >= catRect[0] && pos.x <= catRect[0] + catRect[2] && pos.y >= catRect[1] && pos.y <= catRect[1] + catRect[3]) {
+                draggedItem = 'cat';
+                dragOffset.x = pos.x - state.cat.x;
+                dragOffset.y = pos.y - state.cat.y;
+                state.cat.isDragging = true;
+                state.cat.vx = 0;
+                state.cat.vy = 0;
+                playCatMeow();
+                return;
+            }
+
+            for (const key in props) {
+                const p = props[key];
+                if (pos.x >= p.x && pos.x <= p.x + p.w && pos.y >= p.y && pos.y <= p.y + p.h) {
+                    draggedItem = key;
+                    dragOffset.x = pos.x - p.x;
+                    dragOffset.y = pos.y - p.y;
+                    p.isDragging = true;
+                    p.vx = 0;
+                    p.vy = 0;
+                    return;
+                }
+            }
+        }
+
+        function handlePointerMove(e) {
+            const pos = getMousePos(e);
+            mouseVel.x = pos.x - prevMousePos.x;
+            mouseVel.y = pos.y - prevMousePos.y;
+            prevMousePos = pos;
+
+            if (draggedItem === 'cat') {
+                state.cat.x = pos.x - dragOffset.x;
+                state.cat.y = pos.y - dragOffset.y;
+                state.cat.targetX = state.cat.x;
+                state.cat.targetY = state.cat.y;
+            } else if (draggedItem && props[draggedItem]) {
+                props[draggedItem].x = pos.x - dragOffset.x;
+                props[draggedItem].y = pos.y - dragOffset.y;
+            }
+
+            let found = null;
+            for (const hb of hitboxes) {
+                const [rx, ry, rw, rh] = hb.getRect();
+                if (pos.x >= rx && pos.x <= rx + rw && pos.y >= ry && pos.y <= ry + rh) {
+                    found = hb;
+                    break;
+                }
+            }
+
+            const tooltip = document.getElementById('hover-tooltip');
+            if (found) {
+                state.hoverObject = found.id;
+                canvas.style.cursor = 'pointer';
+                tooltip.innerText = found.name;
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                tooltip.style.left = `${clientX - rect.left + 15}px`;
+                tooltip.style.top = `${clientY - rect.top - 25}px`;
+                tooltip.classList.remove('opacity-0');
+            } else {
+                state.hoverObject = null;
+                canvas.style.cursor = 'default';
+                tooltip.classList.add('opacity-0');
+            }
+        }
+
+        function handlePointerUp(e) {
+            const pos = prevMousePos;
+            const dragDist = Math.hypot(pos.x - pointerDownStartPos.x, pos.y - pointerDownStartPos.y);
+
+            // Short click detection vs Dragging
+            if (dragDist < 5) {
+                for (const hb of hitboxes) {
+                    const [rx, ry, rw, rh] = hb.getRect();
+                    if (pos.x >= rx && pos.x <= rx + rw && pos.y >= ry && pos.y <= ry + rh) {
+                        hb.action();
+                        break;
+                    }
+                }
+            }
+
+            if (draggedItem === 'cat') {
+                state.cat.isDragging = false;
+                state.cat.vx = mouseVel.x * 0.7;
+                state.cat.vy = mouseVel.y * 0.7;
+            } else if (draggedItem && props[draggedItem]) {
+                props[draggedItem].isDragging = false;
+                props[draggedItem].vx = mouseVel.x * 0.7;
+                props[draggedItem].vy = mouseVel.y * 0.7;
+            }
+            draggedItem = null;
+        }
+
+        canvas.addEventListener('mousedown', handlePointerDown);
+        canvas.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        canvas.addEventListener('touchstart', (e) => { handlePointerDown(e); e.preventDefault(); }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => { handlePointerMove(e); e.preventDefault(); }, { passive: false });
+        window.addEventListener('touchend', (e) => { handlePointerUp(e); e.preventDefault(); });
+
+        function drawPixelRect(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+        }
+
+        function updatePhysics() {
+            const gravity = 0.35;
+            const friction = 0.82;
+            const bounce = 0.4;
+
+            for (const key in props) {
+                const p = props[key];
+                if (!p.isDragging) {
+                    p.vy += gravity;
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    for (const surf of surfaces) {
+                        const nextY = p.y + p.h;
+                        if (p.x + p.w >= surf.minX && p.x <= surf.maxX) {
+                            if (nextY >= surf.y && p.y + p.h - p.vy <= surf.y + 6) {
+                                if (Math.abs(p.vy) > 1.5) playLandingThump();
+                                p.y = surf.y - p.h;
+                                p.vy = -p.vy * bounce;
+                                p.vx *= friction;
+
+                                if (Math.abs(p.vy) < 0.5) p.vy = 0;
+                                if (Math.abs(p.vx) < 0.1) p.vx = 0;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (p.x < 0) { p.x = 0; p.vx = -p.vx * bounce; }
+                    if (p.x + p.w > V_WIDTH) { p.x = V_WIDTH - p.w; p.vx = -p.vx * bounce; }
+                }
+            }
+
+            if (!state.cat.isDragging) {
+                if (Math.abs(state.cat.vx) > 0.1 || Math.abs(state.cat.vy) > 0.1) {
+                    state.cat.vy += gravity;
+                    state.cat.x += state.cat.vx;
+                    state.cat.y += state.cat.vy;
+
+                    for (const surf of surfaces) {
+                        if (state.cat.x + 20 >= surf.minX && state.cat.x <= surf.maxX) {
+                            if (state.cat.y + 15 >= surf.y && state.cat.y + 15 - state.cat.vy <= surf.y + 6) {
+                                if (Math.abs(state.cat.vy) > 1.5) playLandingThump();
+                                state.cat.y = surf.y - 15;
+                                state.cat.vy = -state.cat.vy * bounce;
+                                state.cat.vx *= friction;
+
+                                if (Math.abs(state.cat.vy) < 0.5) state.cat.vy = 0;
+                                if (Math.abs(state.cat.vx) < 0.1) state.cat.vx = 0;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateCatLogic() {
+            state.cat.frame += 0.05;
+            state.cat.timer += 1;
+
+            if (!state.cat.isDragging && Math.abs(state.cat.vy) < 0.2) {
+                if (state.cat.timer > 1500 && state.cat.state !== 'walking') {
+                    state.cat.timer = 0;
+                    const spots = [
+                        { x: 125, y: 202, state: 'sleeping' },
+                        { x: 280, y: 275, state: 'purring' },
+                        { x: 470, y: 185, state: 'sitting' },
+                        { x: 420, y: 235, state: 'grooming' },
+                        { x: 230, y: 152, state: 'stretching' }
+                    ];
+                    const chosen = spots[Math.floor(Math.random() * spots.length)];
+                    state.cat.targetX = chosen.x;
+                    state.cat.targetY = chosen.y;
+                    state.cat.state = 'walking';
+                }
+
+                if (state.cat.state === 'walking') {
+                    const dx = state.cat.targetX - state.cat.x;
+                    const dy = state.cat.targetY - state.cat.y;
+                    const dist = Math.hypot(dx, dy);
+
+                    if (dist > 3) {
+                        const stepX = (dx / dist) * 0.8;
+                        state.cat.x += stepX;
+                        state.cat.y += (dy / dist) * 0.8;
+                        state.cat.facingLeft = (stepX < 0);
+                    } else {
+                        state.cat.x = state.cat.targetX;
+                        state.cat.y = state.cat.targetY;
+                        state.cat.state = 'sleeping';
+                        const label = document.getElementById('cat-state-label');
+                        if (label) label.innerText = 'Sleeping';
+                    }
+                }
+            }
+        }
+
+        function drawCat() {
+            updateCatLogic();
+            const cx = state.cat.x;
+            const cy = state.cat.y;
+            const frameOffset = Math.sin(state.cat.frame) * 1.5;
+
+            ctx.save();
+            if (state.cat.facingLeft) {
+                ctx.translate(cx + 15, cy);
+                ctx.scale(-1, 1);
+                ctx.translate(-(cx + 15), -cy);
+            }
+
+            if (state.cat.state === 'sleeping') {
+                const breath = Math.sin(state.cat.frame * 0.8) * 1;
+                drawPixelRect(cx, cy + 8 - breath, 34, 18, "#f97316");
+                drawPixelRect(cx + 6, cy + 11 - breath, 16, 12, "#fff7ed");
+                drawPixelRect(cx - 4, cy + 10 - breath, 12, 12, "#ea580c");
+                drawPixelRect(cx - 4, cy + 7 - breath, 4, 4, "#ea580c");
+                drawPixelRect(cx + 3, cy + 7 - breath, 4, 4, "#ea580c");
+                drawPixelRect(cx - 2, cy + 13 - breath, 3, 1, "#431407");
+                drawPixelRect(cx + 3, cy + 13 - breath, 3, 1, "#431407");
+                drawPixelRect(cx + 28, cy + 12 + frameOffset, 10, 5, "#ea580c");
+            } 
+            else if (state.cat.state === 'walking') {
+                const legAnim = Math.sin(state.cat.frame * 4) * 3;
+                drawPixelRect(cx + 4, cy, 26, 16, "#f97316");
+                drawPixelRect(cx + 8, cy + 4, 14, 12, "#fff7ed");
+                drawPixelRect(cx + 6 + legAnim, cy + 16, 4, 6, "#ea580c");
+                drawPixelRect(cx + 22 - legAnim, cy + 16, 4, 6, "#ea580c");
+                drawPixelRect(cx + 22, cy - 2, 14, 12, "#ea580c");
+                drawPixelRect(cx + 22, cy - 6, 3, 4, "#ea580c");
+                drawPixelRect(cx + 31, cy - 6, 3, 4, "#ea580c");
+                drawPixelRect(cx - 4, cy + 4 + legAnim, 8, 4, "#ea580c");
+            }
+            else if (state.cat.state === 'grooming') {
+                const pawMove = Math.abs(Math.sin(state.cat.frame * 2)) * 3;
+                drawPixelRect(cx + 4, cy, 24, 26, "#f97316");
+                drawPixelRect(cx + 8, cy + 8, 14, 16, "#fff7ed");
+                drawPixelRect(cx + 2, cy - 8, 18, 14, "#ea580c");
+                drawPixelRect(cx + 3, cy - 12, 4, 5, "#ea580c");
+                drawPixelRect(cx + 13, cy - 12, 4, 5, "#ea580c");
+                drawPixelRect(cx + 12 - pawMove, cy - 2, 5, 5, "#fff7ed");
+                drawPixelRect(cx + 24, cy + 8 + frameOffset, 6, 14, "#ea580c");
+            }
+            else if (state.cat.state === 'stretching') {
+                drawPixelRect(cx - 10, cy + 12, 40, 14, "#f97316");
+                drawPixelRect(cx - 14, cy + 18, 12, 8, "#fff7ed");
+                drawPixelRect(cx + 20, cy + 4, 14, 20, "#ea580c");
+                drawPixelRect(cx - 12, cy + 10, 12, 10, "#ea580c");
+                drawPixelRect(cx - 12, cy + 7, 3, 4, "#ea580c");
+                drawPixelRect(cx + 30, cy - 6 + frameOffset, 5, 16, "#ea580c");
+            }
+            else {
+                const purrBounce = (state.cat.state === 'purring') ? Math.sin(state.cat.frame * 3) * 1 : 0;
+                drawPixelRect(cx + 6, cy + 2 + purrBounce, 22, 24, "#f97316");
+                drawPixelRect(cx + 10, cy + 8 + purrBounce, 12, 16, "#fff7ed");
+                drawPixelRect(cx + 4, cy - 10 + purrBounce, 20, 14, "#ea580c");
+                drawPixelRect(cx + 5, cy - 14 + purrBounce, 4, 5, "#ea580c");
+                drawPixelRect(cx + 17, cy - 14 + purrBounce, 4, 5, "#ea580c");
+
+                if (state.cat.state === 'purring') {
+                    drawPixelRect(cx + 8, cy - 5 + purrBounce, 3, 2, "#fff7ed");
+                    drawPixelRect(cx + 15, cy - 5 + purrBounce, 3, 2, "#fff7ed");
+                } else {
+                    drawPixelRect(cx + 8, cy - 6, 3, 4, "#0284c7");
+                    drawPixelRect(cx + 15, cy - 6, 3, 4, "#0284c7");
+                }
+
+                drawPixelRect(cx + 26, cy + 6 + Math.sin(state.cat.frame * 4) * 3, 5, 18, "#ea580c");
+            }
+
+            ctx.restore();
+
+            if (state.cat.heartAnim > 0) {
+                state.cat.heartAnim--;
+                ctx.fillStyle = "#f43f5e";
+                ctx.font = "14px 'VT323', monospace";
+                ctx.fillText("♥", cx + 12, cy - 15 - (45 - state.cat.heartAnim) * 0.5);
+            }
+        }
+
+        function drawIvyPlant() {
+            const px = 20, py = 0;
+            ctx.strokeStyle = "#a855f7";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(px + 20, 0);
+            ctx.lineTo(px + 20, py + 30);
+            ctx.stroke();
+
+            drawPixelRect(px + 8, py + 30, 24, 18, "#f1f5f9");
+            drawPixelRect(px + 6, py + 28, 28, 4, "#e2e8f0");
+
+            const wave = Math.sin(Date.now() * 0.002) * 1.5;
+            drawPixelRect(px + 2, py + 48, 6, 35 + wave, "#10b981");
+            drawPixelRect(px + 12, py + 48, 5, 48 + wave, "#059669");
+            drawPixelRect(px + 20, py + 48, 6, 40 - wave, "#34d399");
+            drawPixelRect(px + 28, py + 48, 5, 25 + wave, "#10b981");
+
+            for (let i = 0; i < 5; i++) {
+                drawPixelRect(px + 1, py + 52 + i * 7 + wave, 4, 4, "#34d399");
+                drawPixelRect(px + 13, py + 52 + i * 9 + wave, 4, 4, "#6ee7b7");
+                drawPixelRect(px + 22, py + 52 + i * 8 - wave, 4, 4, "#10b981");
+            }
+        }
+
+        function drawTerrariumPlant() {
+            const px = 110, py = 0;
+            ctx.strokeStyle = "#8b5cf6";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(px + 12, 0);
+            ctx.lineTo(px + 12, py + 40);
+            ctx.stroke();
+
+            ctx.fillStyle = "rgba(186, 230, 253, 0.35)";
+            ctx.beginPath();
+            ctx.arc(px + 12, py + 52, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#bae6fd";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            drawPixelRect(px + 2, py + 58, 20, 6, "#78350f");
+            drawPixelRect(px + 5, py + 44, 14, 14, "#059669");
+            drawPixelRect(px + 8, py + 40, 8, 8, "#34d399");
+        }
+
+        function drawMonsteraPlant() {
+            const px = 515, py = 25;
+            drawPixelRect(px + 4, py + 22, 16, 15, "#c2410c");
+            drawPixelRect(px + 2, py + 20, 20, 4, "#ea580c");
+
+            drawPixelRect(px - 4, py + 5, 12, 15, "#059669");
+            drawPixelRect(px + 14, py + 2, 12, 16, "#10b981");
+            drawPixelRect(px + 4, py - 4, 14, 18, "#34d399");
+
+            drawPixelRect(px - 2, py + 8, 2, 4, "#170d29");
+            drawPixelRect(px + 18, py + 6, 2, 4, "#170d29");
+        }
+
+        function drawDeskCactus() {
+            const px = 398, py = 184;
+            drawPixelRect(px + 2, py + 10, 12, 10, "#f472b6");
+            drawPixelRect(px, py + 8, 16, 3, "#fbcfe8");
+
+            drawPixelRect(px + 5, py, 6, 9, "#10b981");
+            drawPixelRect(px + 2, py + 3, 3, 4, "#059669");
+            drawPixelRect(px + 11, py + 2, 3, 4, "#059669");
+
+            drawPixelRect(px + 6, py - 3, 4, 3, "#fb7185");
+        }
+
+        function renderRoom() {
+            updatePhysics();
+
+            let wallColor = "#190c2e";
+            if (state.lightingTheme === 'sunset') wallColor = "#2b1028";
+            if (state.lightingTheme === 'night') wallColor = "#0b0b1e";
+            if (state.lightingTheme === 'cyber') wallColor = "#280b2c";
+            drawPixelRect(0, 0, V_WIDTH, V_HEIGHT, wallColor);
+
+            drawPixelRect(0, 290, V_WIDTH, 70, "#120722");
+            ctx.fillStyle = "#0a0314";
+            for (let i = 0; i < V_WIDTH; i += 40) {
+                ctx.fillRect(i, 290, 1, 70);
+                ctx.fillRect(i, 310, 20, 1);
+                ctx.fillRect(i + 20, 335, 20, 1);
+            }
+
+            const winX = 130, winY = 55, winW = 150, winH = 115;
+            drawPixelRect(winX - 5, winY - 5, winW + 10, winH + 10, "#31184a");
+            drawPixelRect(winX, winY, winW, winH, "#09051c");
+
+            drawPixelRect(winX + 10, winY + 60, 20, 55, "#140a2c");
+            drawPixelRect(winX + 35, winY + 45, 30, 70, "#110726");
+            drawPixelRect(winX + 70, winY + 70, 25, 45, "#160b30");
+            drawPixelRect(winX + 100, winY + 40, 35, 75, "#0d0520");
+
+            ctx.fillStyle = "#f472b6";
+            ctx.fillRect(winX + 40, winY + 55, 3, 3);
+            ctx.fillRect(winX + 50, winY + 68, 3, 3);
+            ctx.fillRect(winX + 110, winY + 50, 3, 3);
+
+            ctx.fillStyle = "#fbcfe8";
+            const stars = [[140, 70], [170, 65], [210, 72], [240, 68], [260, 80]];
+            stars.forEach(([sx, sy], idx) => {
+                if (state.weather !== 'rain' || (idx % 2 === 0 && Math.sin(Date.now() * 0.003 + idx) > 0)) {
+                    ctx.fillRect(sx, sy, 2, 2);
+                }
+            });
+
+            drawPixelRect(winX + 115, winY + 15, 12, 12, "#fef08a");
+            drawPixelRect(winX + 112, winY + 12, 10, 12, "#09051c");
+
+            if (state.weather === 'rain') {
+                ctx.strokeStyle = "rgba(192, 132, 252, 0.6)";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                rainDrops.forEach(rd => {
+                    ctx.moveTo(rd.x, rd.y);
+                    ctx.lineTo(rd.x - 1, rd.y + rd.length);
+                    rd.y += rd.speed;
+                    if (rd.y > winY + winH) {
+                        rd.y = winY;
+                        rd.x = winX + Math.random() * winW;
+                    }
+                });
+                ctx.stroke();
+            } else if (state.weather === 'snow') {
+                ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                snowFlakes.forEach(sf => {
+                    ctx.fillRect(sf.x, sf.y, sf.size, sf.size);
+                    sf.y += sf.speed;
+                    sf.x += sf.drift;
+                    if (sf.y > winY + winH) {
+                        sf.y = winY;
+                        sf.x = winX + Math.random() * winW;
+                    }
+                });
+            } else if (state.weather === 'shooting_stars') {
+                if (Math.random() < 0.05) {
+                    shootingStars.push({ x: winX + Math.random() * winW, y: winY, len: 15, speed: 4 });
+                }
+                ctx.strokeStyle = "#fef08a";
+                ctx.beginPath();
+                shootingStars.forEach((ss, idx) => {
+                    ctx.moveTo(ss.x, ss.y);
+                    ctx.lineTo(ss.x - ss.len, ss.y + ss.len);
+                    ss.x -= ss.speed;
+                    ss.y += ss.speed;
+                    if (ss.y > winY + winH) shootingStars.splice(idx, 1);
+                });
+                ctx.stroke();
+            }
+
+            if (state.blindsClosed) {
+                for (let i = 0; i < winH; i += 8) {
+                    drawPixelRect(winX, winY + i, winW, 6, "#31184a");
+                }
+            }
+
+            drawPixelRect(winX, winY, winW, 3, "#422363");
+            drawPixelRect(winX, winY + winH - 3, winW, 6, "#422363");
+            drawPixelRect(winX + winW / 2 - 1, winY, 3, winH, "#31184a");
+            drawPixelRect(winX - 8, winY + winH, winW + 16, 6, "#422363");
+
+            drawPixelRect(430, 60, 130, 6, "#48276c");
+            drawPixelRect(440, 42, 8, 18, "#ec4899");
+            drawPixelRect(449, 38, 8, 22, "#8b5cf6");
+            drawPixelRect(458, 44, 8, 16, "#3b82f6");
+
+            if (state.fairyLightsOn) {
+                ctx.strokeStyle = "#a855f7";
+                ctx.beginPath();
+                ctx.moveTo(430, 66);
+                ctx.quadraticCurveTo(460, 76, 490, 66);
+                ctx.quadraticCurveTo(520, 76, 560, 66);
+                ctx.stroke();
+
+                const bulbPositions = [[445, 71], [475, 71], [505, 71], [535, 71]];
+                bulbPositions.forEach(([bx, by]) => {
+                    drawPixelRect(bx - 2, by - 2, 4, 4, "#fef08a");
+                });
+            }
+
+            const neonX = 310, neonY = 80;
+            const curNeonColor = state.neonOn ? NEON_COLORS[state.neonColorIdx] : "#4a1d43";
+            ctx.strokeStyle = curNeonColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(neonX, neonY, 65, 50);
+            ctx.fillStyle = curNeonColor;
+            ctx.font = "12px 'VT323', monospace";
+            ctx.fillText("GOOD", neonX + 18, neonY + 20);
+            ctx.fillText("NIGHT", neonX + 16, neonY + 34);
+            ctx.fillText("♥", neonX + 28, neonY + 46);
+
+            if (state.neonOn) {
+                const ng = ctx.createRadialGradient(neonX + 32, neonY + 25, 10, neonX + 32, neonY + 25, 60);
+                ng.addColorStop(0, `${curNeonColor}55`);
+                ng.addColorStop(1, "transparent");
+                ctx.fillStyle = ng;
+                ctx.fillRect(neonX - 20, neonY - 20, 105, 90);
+            }
+
+            const shelfX = 280, shelfY = 180;
+            drawPixelRect(shelfX, shelfY, 100, 100, "#3e215b");
+            drawPixelRect(shelfX + 3, shelfY + 3, 94, 94, "#27123d");
+            drawPixelRect(shelfX + 3, shelfY + 50, 94, 5, "#3e215b");
+
+            const starX = shelfX + 20, starY = shelfY - 22;
+            drawPixelRect(starX + 5, starY + 15, 8, 8, "#522678");
+            const starGlow = state.starLampOn ? "#fef08a" : "#64748b";
+            drawPixelRect(starX + 2, starY + 2, 14, 14, starGlow);
+            drawPixelRect(starX + 6, starY - 2, 6, 22, starGlow);
+            drawPixelRect(starX - 2, starY + 6, 22, 6, starGlow);
+
+            const clockX = shelfX + 55, clockY = shelfY - 14;
+            drawPixelRect(clockX, clockY, 36, 18, "#140724");
+            drawPixelRect(clockX + 2, clockY + 2, 32, 14, "#07020f");
+            const now = new Date();
+            let hrs = now.getHours();
+            if (!state.time24h) hrs = hrs % 12 || 12;
+            const hrsStr = hrs.toString().padStart(2, '0');
+            const minsStr = now.getMinutes().toString().padStart(2, '0');
+            ctx.fillStyle = "#38bdf8";
+            ctx.font = "11px 'VT323', monospace";
+            ctx.fillText(`${hrsStr}:${minsStr}`, clockX + 4, clockY + 13);
+
+            drawIvyPlant();
+            drawTerrariumPlant();
+            drawMonsteraPlant();
+            drawDeskCactus();
+
+            const bedX = 0, bedY = 175;
+            drawPixelRect(bedX, bedY, 15, 115, "#3b1e54");
+            drawPixelRect(bedX + 15, bedY + 40, 240, 70, "#4a2468");
+            drawPixelRect(bedX + 15, bedY + 35, 235, 15, "#f8fafc");
+            drawPixelRect(bedX + 60, bedY + 40, 190, 75, "#db2777");
+            drawPixelRect(bedX + 55, bedY + 40, 195, 15, "#f472b6");
+            drawPixelRect(bedX + 20, bedY + 20, 45, 22, "#f1f5f9");
+            drawPixelRect(bedX + 55, bedY + 24, 40, 20, "#f472b6");
+
+            const nsX = 10, nsY = 240;
+            drawPixelRect(nsX, nsY, 55, 50, "#3e215b");
+            drawPixelRect(nsX + 4, nsY + 6, 47, 18, "#25123b");
+            drawPixelRect(nsX + 4, nsY + 28, 47, 18, "#25123b");
+
+            const bLampX = nsX + 12, bLampY = nsY - 28;
+            drawPixelRect(bLampX + 10, bLampY + 14, 8, 14, "#64748b");
+            const bLampColor = state.bedLampOn ? "#fef08a" : "#475569";
+            drawPixelRect(bLampX + 3, bLampY, 22, 16, bLampColor);
+            if (state.bedLampOn) {
+                const lg = ctx.createRadialGradient(bLampX + 14, bLampY + 8, 2, bLampX + 14, bLampY + 8, 40);
+                lg.addColorStop(0, "rgba(254, 240, 138, 0.45)");
+                lg.addColorStop(1, "transparent");
+                ctx.fillStyle = lg;
+                ctx.fillRect(bLampX - 20, bLampY - 20, 70, 70);
+            }
+
+            const rugX = 260, rugY = 270;
+            const rugColors = ["#3e1c63", "#1e3a8a", "#831843"];
+            ctx.fillStyle = rugColors[state.rugPatternIdx];
+            ctx.beginPath();
+            ctx.ellipse(rugX + 140, rugY + 35, 140, 38, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#a855f7";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            const deskX = 390, deskY = 200;
+            drawPixelRect(deskX, deskY, 230, 10, "#4c286e");
+            drawPixelRect(deskX + 15, deskY + 10, 10, 80, "#361b50");
+            drawPixelRect(deskX + 160, deskY + 10, 65, 80, "#361b50");
+
+            const pcX = 440, pcY = 145;
+            drawPixelRect(pcX + 32, pcY + 42, 16, 18, "#211136");
+            drawPixelRect(pcX, pcY, 80, 45, "#2c1547");
+            drawPixelRect(pcX + 3, pcY + 3, 74, 39, "#10061e");
+            ctx.fillStyle = "#a855f7";
+            ctx.fillRect(pcX + 3, pcY + 25, 74, 17);
+            ctx.fillStyle = "#f472b6";
+            ctx.beginPath();
+            ctx.arc(pcX + 40, pcY + 25, 10, Math.PI, 0);
+            ctx.fill();
+
+            // SMARTPHONE RENDER ON DESK
+            const phX = props.phone.x, phY = props.phone.y;
+            drawPixelRect(phX, phY, 12, 18, "#1e293b");
+            drawPixelRect(phX + 1, phY + 1, 10, 16, "#38bdf8");
+            drawPixelRect(phX + 4, phY + 2, 4, 1, "#0284c7");
+
+            // DESK LAMP RENDER WITH GLOW LIGHT CONE
+            const dLampX = props.deskLamp.x, dLampY = props.deskLamp.y;
+            drawPixelRect(dLampX + 8, dLampY + 35, 14, 6, "#361b50");
+            ctx.strokeStyle = "#7e22ce";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(dLampX + 15, dLampY + 35);
+            ctx.lineTo(dLampX + 22, dLampY + 18);
+            ctx.lineTo(dLampX + 8, dLampY + 10);
+            ctx.stroke();
+
+            const dLampColor = state.deskLampOn ? "#fef08a" : "#581c87";
+            drawPixelRect(dLampX + 2, dLampY + 4, 14, 10, dLampColor);
+            
+            // LIGHT CONE VISUAL EFFECT
+            if (state.deskLampOn) {
+                ctx.fillStyle = "rgba(254, 240, 138, 0.25)";
+                ctx.beginPath();
+                ctx.moveTo(dLampX + 8, dLampY + 14);
+                ctx.lineTo(dLampX - 40, dLampY + 50);
+                ctx.lineTo(dLampX + 35, dLampY + 50);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            const mugX = props.mug.x, mugY = props.mug.y;
+            drawPixelRect(mugX, mugY, 10, 12, props.mug.filled ? "#ec4899" : "#64748b");
+            drawPixelRect(mugX + 10, mugY + 3, 3, 6, props.mug.filled ? "#ec4899" : "#64748b");
+            if (props.mug.steam) {
+                const steamY = Math.sin(Date.now() * 0.005) * 3;
+                ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+                ctx.fillRect(mugX + 2, mugY - 6 + steamY, 2, 4);
+                ctx.fillRect(mugX + 6, mugY - 9 - steamY, 2, 4);
+            }
+
+            const plX = props.plushie.x, plY = props.plushie.y;
+            drawPixelRect(plX + 3, plY + 6, 12, 14, "#b45309");
+            drawPixelRect(plX + 1, plY + 1, 16, 11, "#d97706");
+            drawPixelRect(plX, plY - 2, 5, 5, "#b45309");
+            drawPixelRect(plX + 11, plY - 2, 5, 5, "#b45309");
+            drawPixelRect(plX + 5, plY + 5, 6, 5, "#fef08a");
+            drawPixelRect(plX + 7, plY + 6, 2, 2, "#451a03");
+            drawPixelRect(plX + 7, plY + 11, 4, 3, "#f472b6");
+            drawPixelRect(plX + 4, plY + 14, 3, 3, "#fbcfe8");
+            drawPixelRect(plX + 11, plY + 14, 3, 3, "#fbcfe8");
+
+            // CUSHION / PILLOW RENDER
+            const cX = props.cushion.x, cY = props.cushion.y;
+            drawPixelRect(cX, cY, props.cushion.w, props.cushion.h, "#f472b6");
+            drawPixelRect(cX + 2, cY + 2, props.cushion.w - 4, props.cushion.h - 4, "#fb7185");
+
+            const chairX = 405, chairY = 205;
+            
+            // Chair Stand Base (Fixed Bottom)
+            drawPixelRect(chairX + 17, chairY + 52, 6, 28, "#1c0b2d");
+            drawPixelRect(chairX + 8, chairY + 77, 24, 4, "#1c0b2d");
+
+            if (state.chairFacingIdx === 0) {
+                // 1. FRONT FACING
+                drawPixelRect(chairX + 2, chairY + 5, 36, 38, "#7e22ce"); // Backrest
+                drawPixelRect(chairX, chairY + 40, 40, 12, "#9333ea");   // Cushion Seat
+            } 
+            else if (state.chairFacingIdx === 1) {
+                // 2. LEFT PROFILE FLIP
+                drawPixelRect(chairX + 6, chairY + 5, 10, 38, "#7e22ce");  // Backrest (Side)
+                drawPixelRect(chairX + 6, chairY + 40, 28, 12, "#9333ea");  // Cushion Seat (Side)
+                drawPixelRect(chairX + 4, chairY + 20, 6, 20, "#6b21a8");   // Armrest
+            } 
+            else if (state.chairFacingIdx === 2) {
+                // 3. BACK FACING (Full Backrest covering cushion)
+                drawPixelRect(chairX + 2, chairY + 2, 36, 44, "#6b21a8"); // Full Back Rest
+                drawPixelRect(chairX, chairY + 42, 40, 8, "#581c87");    // Under-seat structure
+            } 
+            else if (state.chairFacingIdx === 3) {
+                // 4. RIGHT PROFILE FLIP
+                drawPixelRect(chairX + 24, chairY + 5, 10, 38, "#7e22ce"); // Backrest (Side)
+                drawPixelRect(chairX + 6, chairY + 40, 28, 12, "#9333ea");  // Cushion Seat (Side)
+                drawPixelRect(chairX + 30, chairY + 20, 6, 20, "#6b21a8");  // Armrest
+            }
+            
+            drawCat();
+
+            state.particles.forEach((p, idx) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 2, 2);
+                if (p.life <= 0) state.particles.splice(idx, 1);
+            });
+
+            if (!state.lightsOn) {
+                ctx.fillStyle = "rgba(6, 2, 15, 0.78)";
+                ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+            }
+
+            if (state.hoverObject) {
+                const hb = hitboxes.find(h => h.id === state.hoverObject);
+                if (hb) {
+                    const [rx, ry, rw, rh] = hb.getRect();
+                    ctx.strokeStyle = "#f472b6";
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeRect(rx, ry, rw, rh);
+                    ctx.setLineDash([]);
+                }
+            }
+        }
+
+        function updatePhoneClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const str = `${h}:${m}`;
+            const el1 = document.getElementById('phone-status-time');
+            const el2 = document.getElementById('phone-clock-widget');
+            if (el1) el1.innerText = str;
+            if (el2) el2.innerText = str;
+        }
+        setInterval(updatePhoneClock, 1000);
+        updatePhoneClock();
+
+        function loop() {
+            renderRoom();
+            requestAnimationFrame(loop);
+        }
+
+        window.onload = () => {
+            loop();
+        };
+    </script>
+</body>
+</html>
